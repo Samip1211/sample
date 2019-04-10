@@ -1,0 +1,98 @@
+{
+  "name": "restApp2",
+  "type": "flogo:app",
+  "version": "0.0.1",
+  "description": "My flogo application description",
+  "appModel": "1.0.0",
+  "imports": [
+    "github.com/project-flogo/contrib/activity/log",
+    "github.com/skothari-tibco/flogo-components/trigger/git",
+    "github.com/skothari-tibco/flogo-components/activity/imagerunner",
+    "github.com/skothari-tibco/flogo-components/activity/imagebuilder",
+    "github.com/skothari-tibco/flogo-components/activity/twillio",
+    "github.com/project-flogo/flow"
+  ],
+  "triggers": [
+    {
+      "id": "my_rest_trigger",
+      "type": "git",
+      "settings": {
+        "port": "3009",
+        "gitPath": "/Users/***/Desktop/my-app"
+      },
+      "handlers": [
+        {
+          "settings": {
+            "method": "GET",
+            "path": "/test"
+          },
+          "actions": [
+            {
+              "type": "flow",
+              "settings": {
+                "flowURI": "res://flow:simple_flow"
+              },
+              "input": {
+                "in": "test"
+              }
+      }
+    ]
+        }
+      ]
+    }
+  ],
+  "resources": [
+    {
+      "id": "flow:simple_flow",
+      "data": {
+        "name": "simple_flow",
+        "metadata": {
+          "input": [
+            { "name": "in", "type": "string",  "value": "test" }
+          ],
+          "output": [
+            { "name": "out", "type": "string" }
+          ]
+        },
+        "tasks": [
+          
+          {
+            "id": "imagerunner",
+            "name": "Run Image",
+            "activity": {
+              "type": "imagerunner",
+
+              "input": {
+                "imagename": "my-app:latest"
+              
+              }
+              
+            }
+          },
+          {
+            "id": "log",
+            "name": "Log Message",
+            "activity": {
+              "type": "log",
+              "input": {
+                "message": "=$activity[imagerunner].code"
+             
+              }
+            }
+          }
+
+         
+        ],
+        "links": [
+           
+           {
+            "from": "imagerunner",
+            "to":"log",
+            "type":"expression",
+            "value" : "$activity[imagerunner].code != 0"
+           }
+        ]
+      }
+    }
+  ]
+}
